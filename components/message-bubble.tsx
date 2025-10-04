@@ -31,7 +31,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
             <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
             <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            <span className="text-sm text-muted-foreground">AI is typing...</span>
+            <span className="text-sm text-muted-foreground"></span>
           </div>
         ) : (
           <div className="prose text-foreground leading-relaxed whitespace-pre-wrap">

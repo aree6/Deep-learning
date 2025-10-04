@@ -71,7 +71,7 @@ export function Sidebar({
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{chat.title}</p>
-                    <p className="text-xs text-muted-foreground">{formatRelativeTime(chat.timestamp)}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatRelativeTime(chat.timestamp)}</p>
                   </div>
                   <button
                     onClick={(e) => {

@@ -18,14 +18,13 @@ interface ChatAreaProps {
   onFirstUserMessage?: (chatId: string, firstPrompt: string) => void
 }
 
+
 export function ChatArea({ focusMode, onToggleFocus, chatId, onSaveQuiz, onMessagesUpdate, onFirstUserMessage }: ChatAreaProps) {
-  const { messages, sendMessage, status, setMessages } = useChat({
+  const { sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   })
-
-  // Fallback messages created from whatever the API returns (raw text)
-  // This ensures the user sees the API output even if the transport/streaming
-  // isn't being parsed into `useChat` messages for some reason.
+  // Internal messages state, decoupled from useChat's messages
+  const [messages, setMessages] = useState<any[]>([])
   const [rawApiMessages, setRawApiMessages] = useState<any[]>([])
   const [generatedQuiz, setGeneratedQuiz] = useState<any[] | null>(null)
   const [showQuiz, setShowQuiz] = useState(false)
@@ -206,33 +205,53 @@ export function ChatArea({ focusMode, onToggleFocus, chatId, onSaveQuiz, onMessa
     console.log("[v0] Status:", status)
   }, [status])
 
-  // Load saved messages for the selected chat from localStorage
+  // Reset messages and quiz when chatId changes: load from localStorage or empty for new chat
   useEffect(() => {
+    if (!chatId) {
+      setMessages([])
+      setGeneratedQuiz(null)
+      return
+    }
     try {
-      if (!chatId) return
       const raw = localStorage.getItem('learning-chats')
-      if (!raw) return
+      if (!raw) {
+        setMessages([])
+        setGeneratedQuiz(null)
+        return
+      }
       const chats = JSON.parse(raw)
       const found = chats.find((c: any) => c.id === chatId)
       if (found && Array.isArray(found.messages)) {
-        // restore messages into the chat transport
         setMessages(found.messages)
-        // inform parent about restored messages so in-memory state stays in sync
-        try {
-          if (typeof (arguments[0] as any) === 'undefined') {
-            // noop to keep TS happy in some bundlers
-          }
-        } catch (e) {
-          // noop
-        }
         if (typeof onMessagesUpdate === 'function') {
           onMessagesUpdate(chatId, found.messages)
         }
+      } else {
+        setMessages([])
+      }
+      // Load quiz for this chat from localStorage
+      const quizKey = `learning-quiz-${chatId}`
+      const quizRaw = localStorage.getItem(quizKey)
+      if (quizRaw) {
+        try {
+          const quiz = JSON.parse(quizRaw)
+          if (Array.isArray(quiz)) {
+            setGeneratedQuiz(quiz)
+          } else {
+            setGeneratedQuiz(null)
+          }
+        } catch {
+          setGeneratedQuiz(null)
+        }
+      } else {
+        setGeneratedQuiz(null)
       }
     } catch (e) {
-      console.warn('[v0] Could not load messages from localStorage', e)
+      setMessages([])
+      setGeneratedQuiz(null)
+      console.warn('[v0] Could not load messages or quiz from localStorage', e)
     }
-  }, [chatId, setMessages])
+  }, [chatId])
 
   // Persist messages for the current chat into localStorage whenever they change
   useEffect(() => {
@@ -395,7 +414,12 @@ export function ChatArea({ focusMode, onToggleFocus, chatId, onSaveQuiz, onMessa
         }
       })()
 
-      const humanTextFinal = parsedCleanText
+
+      // Remove any trailing quiz JSON block from the assistant's message
+      let humanTextFinal = parsedCleanText
+      // Remove ```json ... ``` block at the end if present
+      const jsonFenceRegex = /```json\s*([\s\S]*?)```\s*$/i
+      humanTextFinal = humanTextFinal.replace(jsonFenceRegex, '').trim()
 
       const { cleanText, quizzes } = (parsedQuizzesFromJson && parsedQuizzesFromJson.length > 0)
         ? { cleanText: humanTextFinal, quizzes: parsedQuizzesFromJson }
@@ -472,6 +496,14 @@ export function ChatArea({ focusMode, onToggleFocus, chatId, onSaveQuiz, onMessa
           })
 
           setGeneratedQuiz(normalized)
+          // Persist quiz to localStorage for this chat
+          if (chatId) {
+            try {
+              localStorage.setItem(`learning-quiz-${chatId}`, JSON.stringify(normalized))
+            } catch (e) {
+              console.warn('[v0] Could not persist quiz to localStorage', e)
+            }
+          }
         }
       } catch (err) {
         // If updating the main messages fails, fall back to rawApiMessages
@@ -554,6 +586,7 @@ export function ChatArea({ focusMode, onToggleFocus, chatId, onSaveQuiz, onMessa
         {showQuiz && generatedQuiz && (
           <div className="px-6">
             <QuizCard
+              key={chatId ? `quizcard-${chatId}` : 'quizcard-default'}
               quizData={{ quiz: generatedQuiz }}
               onComplete={(score: number) => {
                 setShowQuiz(false)
