@@ -1,0 +1,287 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated to match sophisticated dark mode palette specifications */
+  --background: #121212; /* deep charcoal - prevents "void effect" */
+  --foreground: #eaeaea; /* pale silver - 92% brightness optimal for dark backgrounds */
+  --card: #15171a; /* surface */
+  --card-foreground: #eaeaea;
+  --popover: #15171a;
+  --popover-foreground: #eaeaea;
+  --primary: #daa520; /* goldenrod - consistent semantic meaning */
+  --primary-foreground: #121212;
+  --secondary: #6aa77a; /* muted green for user messages */
+  --secondary-foreground: #121212;
+  --muted: #15171a;
+  --muted-foreground: #8a9299;
+  --accent: #daa520; /* goldenrod accent */
+  --accent-foreground: #121212;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: #2a2d31;
+  --input: #15171a;
+  --ring: #daa520;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: #15171a;
+  --sidebar-foreground: #eaeaea;
+  --sidebar-primary: #daa520;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: #2a2d31;
+  --sidebar-accent-foreground: #eaeaea;
+  --sidebar-border: #2a2d31;
+  --sidebar-ring: #daa520;
+
+  /* Added new color tokens for sophisticated dark mode */
+  --heading: #b6de82; /* mint green - brighter for dark mode compensation */
+  --link: #82aaff; /* electric blue - glowing effect with 4.8:1 contrast */
+  --emphasis: #daa520; /* goldenrod - same as light mode for consistency */
+  --blockquote: #ffd54f; /* amber glow - brighter than light mode */
+  --blockquote-bg: rgba(218, 165, 32, 0.15); /* 15% opacity goldenrod backlit effect */
+  --inline-code-bg: rgba(100, 149, 237, 0.2); /* 20% opaque blue tech accent */
+  --strong-text: #e1c7a2; /* antique lace - warm beige avoiding harsh white */
+  --selection: rgba(218, 165, 32, 0.4); /* 40% opacity neon highlighter effect */
+
+  /* Code block specific colors */
+  --code-bg: #0b1220;
+  --code-text: #dfe6ea;
+}
+
+.dark {
+  --background: #121212;
+  --foreground: #eaeaea;
+  --card: #15171a;
+  --card-foreground: #eaeaea;
+  --popover: #15171a;
+  --popover-foreground: #eaeaea;
+  --primary: #daa520;
+  --primary-foreground: #121212;
+  --secondary: #6aa77a;
+  --secondary-foreground: #121212;
+  --muted: #15171a;
+  --muted-foreground: #8a9299;
+  --accent: #daa520;
+  --accent-foreground: #121212;
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: #2a2d31;
+  --input: #15171a;
+  --ring: #daa520;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #15171a;
+  --sidebar-foreground: #eaeaea;
+  --sidebar-primary: #daa520;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: #2a2d31;
+  --sidebar-accent-foreground: #eaeaea;
+  --sidebar-border: #2a2d31;
+  --sidebar-ring: #daa520;
+
+  /* Dark mode specific tokens */
+  --heading: #b6de82;
+  --link: #82aaff;
+  --emphasis: #daa520;
+  --blockquote: #ffd54f;
+  --blockquote-bg: rgba(218, 165, 32, 0.15);
+  --inline-code-bg: rgba(100, 149, 237, 0.2);
+  --strong-text: #e1c7a2;
+  --selection: rgba(218, 165, 32, 0.4);
+}
+
+@theme inline {
+  --font-sans: var(--font-poppins);
+  --font-serif: var(--font-libre-baskerville);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-code-bg: var(--code-bg);
+  --color-code-text: var(--code-text);
+
+  /* Added new color tokens to theme */
+  --color-heading: var(--heading);
+  --color-link: var(--link);
+  --color-emphasis: var(--emphasis);
+  --color-blockquote: var(--blockquote);
+  --color-blockquote-bg: var(--blockquote-bg);
+  --color-inline-code-bg: var(--inline-code-bg);
+  --color-strong-text: var(--strong-text);
+  --color-selection: var(--selection);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Added selection styling with new color token */
+  ::selection {
+    background: var(--selection);
+    color: var(--background);
+  }
+
+  /* Custom scrollbar for book-like feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+
+p, ul, li, th,
+  li p code,
+  code
+ {
+  color: #A0A0A0 !important ;
+}
+
+
+
+
+em {
+  color: goldenrod !important;
+       font-size: 1.1rem;
+       /* text-shadow: 0px 0px 0.5px black; */
+       font-family: "Libre Baskerville", serif;
+  font-weight:600;
+  font-style: italic;
+
+}
+
+
+div p strong {
+  color: rgba(245, 222, 179, 0.7);;
+}
+
+blockquote {
+    padding: 0.5em 1.5em !important;
+    border-left: 4px solid goldenrod !important;
+}
+
+blockquote p {
+    color: goldenrod;
+}
+
+blockquote p strong {
+    font-family: "Libre Baskerville", serif;
+    font-style: italic;
+    font-weight: bold;
+   
+}
+
+ ul {
+  margin-left: 10px;
+  line-height: 10px;
+
+}
+ li {
+  line-height: 20px;
+}
+
+li strong, li b, ul b , ul strong  {
+color: rgba(245, 222, 179, 0.7);
+}
+
+h1, h2, h3, h4, h5, h6,
+h1 *, h2 *, h3 *, h4 *, h5 *, h6 *  {
+color: rgb(136, 176, 75) !important; 
+
+ font-family: "Libre Baskerville", "Poppins", sans-serif !important;
+ word-spacing: 2px;
+ letter-spacing: 1.5px;
+          font-weight: 600;
+
+  font-style: italic;
+ }
+
+h1, h2, 
+h1 *, h2 * {
+  font-family:"Ribeye Marrow",  "Libre Baskerville","Chewy", "Poppins", sans-serif !important;
+ word-spacing: 2px;
+ letter-spacing: 1.5px;
+        font-weight: 600;
+
+  font-style: italic;
+}
+
+
+
+}
+
+/* Custom classes for the education app */
+.parenthetical {
+  @apply text-sm italic;
+  color: var(--emphasis); /* Changed parentheticals to golden rod color */
+}
+
+.code-block {
+  background: var(--code-bg);
+  color: var(--code-text);
+  text-shadow: 0 0 10px rgba(223, 230, 234, 0.3);
+}
+
+.focus-mode {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+.focus-mode.active {
+  @apply text-lg leading-relaxed;
+}
