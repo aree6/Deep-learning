@@ -25,6 +25,8 @@ interface SidebarProps {
   onSelectChat: (chatId: string) => void
   onDeleteChat: (chatId: string) => void
   onSelectQuiz: (quizId: string) => void
+  activeRecallMode?: boolean
+  onActiveRecall?: () => void
 }
 
 export function Sidebar({
@@ -35,10 +37,13 @@ export function Sidebar({
   onSelectChat,
   onDeleteChat,
   onSelectQuiz,
+  activeRecallMode,
+  onActiveRecall,
 }: SidebarProps) {
   return (
     <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col h-screen">
-      {/* Header */}
+
+      {/* Header + Active Recall Button */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-serif font-semibold text-sidebar-foreground text-lg">Learning Hub</h2>
@@ -46,6 +51,15 @@ export function Sidebar({
             <Plus className="w-4 h-4" />
           </Button>
         </div>
+        <Button
+          variant="outline"
+          className={`w-full flex items-center justify-start gap-2 mt-2 font-semibold ${activeRecallMode ? 'bg-sidebar-accent text-sidebar-primary ring-2 ring-primary' : 'bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-primary'}`}
+          onClick={onActiveRecall}
+          data-active={activeRecallMode}
+        >
+          <Brain className="w-4 h-4" />
+          Active Recall
+        </Button>
       </div>
 
       {/* Chat History */}
@@ -83,32 +97,6 @@ export function Sidebar({
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Active Recall Section */}
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center space-x-2 mb-3">
-            <Brain className="w-4 h-4 text-sidebar-primary" />
-            <h3 className="text-sm font-medium text-sidebar-foreground">Active Recall</h3>
-          </div>
-          <div className="space-y-1">
-            {quizzes.length === 0 ? (
-              <p className="text-xs text-muted-foreground p-2">Complete lessons to unlock quizzes</p>
-            ) : (
-              quizzes.map((quiz) => (
-                <button
-                  key={quiz.id}
-                  onClick={() => onSelectQuiz(quiz.id)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground transition-colors"
-                >
-                  <p className="text-sm font-medium">{quiz.topic}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {quiz.questionCount} questions • {formatRelativeTime(quiz.timestamp)}
-                  </p>
-                </button>
               ))
             )}
           </div>
