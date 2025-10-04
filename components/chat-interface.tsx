@@ -34,8 +34,8 @@ export function ChatInterface() {
   const [activeRecallMode, setActiveRecallMode] = useState(false)
   const [activeRecallStep, setActiveRecallStep] = useState<'select'|'quiz'|null>(null)
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<number|null>(null)
-  const [recallChats, setRecallChats] = useState<Chat[]>([])
-  const [recallQuizzes, setRecallQuizzes] = useState<any[]>([])
+  const [recallQuestions, setRecallQuestions] = useState<any[]>([])
+  const [recallProgress, setRecallProgress] = useState<number>(0)
 
   // Load chats and quizzes from localStorage
   useEffect(() => {
@@ -137,9 +137,19 @@ export function ChatInterface() {
           onSelectQuiz={handleSelectQuiz}
           activeRecallMode={activeRecallMode}
           onActiveRecall={() => {
-            setActiveRecallMode(true)
-            setActiveRecallStep('select')
-            setCurrentChatId(null)
+            // Restore session if available
+            const sessionRaw = window.sessionStorage.getItem('activeRecallSession');
+            if (sessionRaw) {
+              const session = JSON.parse(sessionRaw);
+              setRecallQuestions(session.questions || []);
+              setRecallProgress(session.progress || 0);
+              setSelectedTimeFrame(session.timeFrame || null);
+              setActiveRecallStep('quiz');
+            } else {
+              setActiveRecallStep('select');
+            }
+            setActiveRecallMode(true);
+            setCurrentChatId(null);
           }}
         />
       )}
@@ -152,40 +162,68 @@ export function ChatInterface() {
               <div className="max-w-md w-full bg-card p-6 rounded-lg shadow">
                 <h2 className="text-xl font-bold mb-4 text-center">Active Recall</h2>
                 <p className="mb-4 text-center">Select a time frame to review quizzes from your past chats:</p>
+                {/* Continue previous session button if available */}
+                {(() => {
+                  const sessionRaw = window.sessionStorage.getItem('activeRecallSession');
+                  if (sessionRaw) {
+                    return (
+                      <button
+                        className="mb-4 bg-accent text-accent-foreground rounded-lg py-2 font-medium hover:bg-accent/80 transition w-full"
+                        onClick={() => {
+                          const session = JSON.parse(sessionRaw);
+                          setRecallQuestions(session.questions || []);
+                          setRecallProgress(session.progress || 0);
+                          setSelectedTimeFrame(session.timeFrame || null);
+                          setActiveRecallStep('quiz');
+                        }}
+                      >Continue previous session</button>
+                    );
+                  }
+                  return null;
+                })()}
                 <div className="flex flex-col gap-3">
                   {[1,2,3,6,'ALL'].map(option => (
                     <button
                       key={option}
                       className="bg-primary text-primary-foreground rounded-lg py-2 font-medium hover:bg-primary/90 transition"
                       onClick={() => {
-                        let months: number | null = typeof option === 'number' ? option : null
-                        setSelectedTimeFrame(months)
+                        let months: number | null = typeof option === 'number' ? option : null;
+                        setSelectedTimeFrame(months);
                         // Get chats from localStorage within time frame
-                        const savedChats = localStorage.getItem("learning-chats")
-                        let chatsArr: Chat[] = savedChats ? JSON.parse(savedChats) : []
-                        let filtered: Chat[] = []
+                        const savedChats = localStorage.getItem("learning-chats");
+                        let chatsArr: Chat[] = savedChats ? JSON.parse(savedChats) : [];
+                        let filtered: Chat[] = [];
                         if (months) {
-                          filtered = getChatsByTimeFrame(chatsArr, months)
+                          filtered = getChatsByTimeFrame(chatsArr, months);
                         } else {
-                          filtered = chatsArr
+                          filtered = chatsArr;
                         }
-                        setRecallChats(filtered)
-                        // Extract quizzes from these chats
-                        let quizzesArr: { chatId: string, chatTitle: string, questions: any[] }[] = []
+                        // Extract all quiz questions from these chats, with chatId and chatTitle
+                        let allQuestions: any[] = [];
                         filtered.forEach((chat: Chat) => {
-                          const quizKey = `learning-quiz-${chat.id}`
-                          const quizRaw = localStorage.getItem(quizKey)
+                          const quizKey = `learning-quiz-${chat.id}`;
+                          const quizRaw = localStorage.getItem(quizKey);
                           if (quizRaw) {
                             try {
-                              const quiz = JSON.parse(quizRaw)
+                              const quiz = JSON.parse(quizRaw);
                               if (Array.isArray(quiz)) {
-                                quizzesArr.push({ chatId: chat.id, chatTitle: chat.title, questions: quiz })
+                                quiz.forEach((q: any) => {
+                                  allQuestions.push({ ...q, chatId: chat.id, chatTitle: chat.title });
+                                });
                               }
                             } catch {}
                           }
-                        })
-                        setRecallQuizzes(quizzesArr)
-                        setActiveRecallStep('quiz')
+                        });
+                        // Shuffle questions
+                        for (let i = allQuestions.length - 1; i > 0; i--) {
+                          const j = Math.floor(Math.random() * (i + 1));
+                          [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+                        }
+                        setRecallQuestions(allQuestions);
+                        setRecallProgress(0);
+                        setActiveRecallStep('quiz');
+                        // Save session state
+                        window.sessionStorage.setItem('activeRecallSession', JSON.stringify({ questions: allQuestions, timeFrame: months, progress: 0 }));
                       }}
                     >
                       {option === 'ALL' ? 'All Time' : `Last ${option} month${option !== 1 ? 's' : ''}`}
@@ -203,40 +241,32 @@ export function ChatInterface() {
             )}
             {activeRecallStep === 'quiz' && (
               <div className="max-w-2xl w-full bg-card p-6 rounded-lg shadow">
-                <h2 className="text-xl font-bold mb-4 text-center">Retake Quizzes</h2>
-                {recallQuizzes.length === 0 ? (
-                  <p className="text-center text-muted-foreground">No quizzes found for this time frame.</p>
+                <h2 className="text-xl font-bold mb-4 text-center">Active Recall Quiz</h2>
+                {recallQuestions.length === 0 ? (
+                  <p className="text-center text-muted-foreground">No quiz questions found for this time frame.</p>
                 ) : (
-                  <div className="space-y-10">
-                    {recallQuizzes.map((qz, idx) => (
-                      <div key={qz.chatId} className="border-b pb-8 mb-8">
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <span className="font-semibold">{qz.chatTitle || 'Untitled Chat'}</span>
-                            <span className="ml-2 text-xs text-muted-foreground">(Chat ID: {qz.chatId})</span>
-                          </div>
-                          <a
-                            href="#"
-                            className="text-primary underline text-xs"
-                            onClick={e => {
-                              e.preventDefault()
-                              handleSelectChat(qz.chatId)
-                            }}
-                          >See Chat</a>
-                        </div>
-                        {/* Interactive QuizCard for retake */}
-                        {qz.questions && Array.isArray(qz.questions) && qz.questions.length > 0 ? (
-                          <QuizCard
-                            key={qz.chatId + '-quizcard'}
-                            quizData={{ quiz: qz.questions }}
-                            onComplete={() => {}}
-                          />
-                        ) : (
-                          <div className="text-xs text-muted-foreground">No questions found.</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <QuizCard
+                    key={recallQuestions.length + '-' + recallProgress}
+                    quizData={{ quiz: recallQuestions }}
+                    onComplete={() => {
+                      setRecallProgress(recallQuestions.length);
+                      window.sessionStorage.removeItem('activeRecallSession');
+                    }}
+                    currentQuestion={recallProgress}
+                    onQuestionChange={(idx: number) => {
+                      setRecallProgress(idx);
+                      window.sessionStorage.setItem('activeRecallSession', JSON.stringify({ questions: recallQuestions, timeFrame: selectedTimeFrame, progress: idx }));
+                    }}
+                    onSeeChat={(chatId: string) => {
+                      // Use the same logic as handleSelectChat to ensure chat loads and recall mode is preserved
+                      const savedChats = localStorage.getItem("learning-chats");
+                      if (savedChats) {
+                        setChats(JSON.parse(savedChats));
+                      }
+                      setCurrentChatId(chatId);
+                      // Do NOT exit recall mode or step
+                    }}
+                  />
                 )}
                 <button
                   className="mt-6 text-sm text-muted-foreground underline hover:text-primary"
